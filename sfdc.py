@@ -10,10 +10,10 @@ class sfdcdatafetch():
           query = query + x['name'] + ","
         query = query[:-1] + " from Campaign__c"
         print query
-        res = sf.query("select clicks__c from Campaign__c")
-        print res["records"]
+        res = sf.query(query)
         records = res['records']
-        for x in  OrderedDict(records):
-            print x
-        
+        for x in records:
+            for y in sf.Campaign__c.describe()['fields']:
+                print x[y['name']]
+
 data = sfdcdatafetch('mudit.somani@salesforce.com','mudit1234$','N0OF2max8RxHHoZkY4AB96uih')
