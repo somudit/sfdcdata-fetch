@@ -36,13 +36,15 @@ class sfdcdatafetch():
                 for y in sObjectName.describe()['fields']:
                     data[y['name']] = x[y['name']]
                 print data
-                adapter.insert_posts(collection, data)
+                ls.append(adapter.insert_posts(collection, data))
+        return ls
 
     def getFieldType(self,*args):
         sf = Salesforce(username=self.username, password=self.password, security_token=self.security_token)
         session_id = sf.session_id
         instance = sf.sf_instance
         type = {}
+        ls=[]
         #session_id, instance = SalesforceLogin(self.username, self.password, self.security_token, True)
         for sObject in args:
             adapter = mongoadapter.adapter()
@@ -52,7 +54,8 @@ class sfdcdatafetch():
             sObjectName = SFType(sObject,session_id,instance)
             for y in sObjectName.describe()['fields']:
                 type[y['name']] = y['type']
-            adapter.insert_posts(collection, type)
+            ls.append(adapter.insert_posts(collection, type))
+        return ls
 
 sfdc = sfdcdatafetch('mudit.somani@salesforce.com','mudit1234$','N0OF2max8RxHHoZkY4AB96uih')
 #print sfdc.returnsObject()
