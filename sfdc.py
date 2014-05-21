@@ -1,6 +1,7 @@
 from simple_salesforce import Salesforce, SalesforceLogin, SFType
-import pymongo
 import json
+import mongoadapter
+
 class sfdcdatafetch():
 
     def __init__(self, username, password, security_token):
@@ -13,7 +14,7 @@ class sfdcdatafetch():
         l1 = [[x['name'],x['custom'],x['label']] for x in sf.describe()['sobjects']]
         return l1
 
-    def runQuery(self,*args):
+    def getTableData(self,*args):
         sf = Salesforce(username=self.username, password=self.password, security_token=self.security_token)
         session_id = sf.session_id
         instance = sf.sf_instance
@@ -25,18 +26,35 @@ class sfdcdatafetch():
                 query = query + x['name'] + ","
             query = query[:-1] + " from " + sObjectName.name
             print query
-            res = sf.query(query)
+            res = sf.query_all(query)
             records = res['records']
             ls = []
             data = {}
-            type = {}
-            for y in sObjectName.describe()['fields']:
-                    type[y['name']] = y['type']
+            adapter = mongoadapter.adapter()
+            collection = adapter.createColletion(sObject)
             for x in records:
                 for y in sObjectName.describe()['fields']:
                     data[y['name']] = x[y['name']]
-                ls.append(data)
-        return ls
+                print data
+                adapter.insert_posts(collection, data)
+
+    def getFieldType(self,*args):
+        sf = Salesforce(username=self.username, password=self.password, security_token=self.security_token)
+        session_id = sf.session_id
+        instance = sf.sf_instance
+        type = {}
+        #session_id, instance = SalesforceLogin(self.username, self.password, self.security_token, True)
+        for sObject in args:
+            adapter = mongoadapter.adapter()
+            sObject_type = sObject + "_type"
+            collection = adapter.createColletion(sObject_type)
+            print sObject_type
+            sObjectName = SFType(sObject,session_id,instance)
+            for y in sObjectName.describe()['fields']:
+                type[y['name']] = y['type']
+            adapter.insert_posts(collection, type)
+
 sfdc = sfdcdatafetch('mudit.somani@salesforce.com','mudit1234$','N0OF2max8RxHHoZkY4AB96uih')
-print sfdc.returnsObject()
-print sfdc.runQuery('Campaign__c')
+#print sfdc.returnsObject()
+#sfdc.getFieldType('Campaign__c', 'Account')
+sfdc.getTableData('Campaign__c')
